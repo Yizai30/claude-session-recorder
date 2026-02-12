@@ -1,0 +1,16 @@
+# PowerShell modules
+*.ps1xml
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*~
+
+# Session files
+session-*.json
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

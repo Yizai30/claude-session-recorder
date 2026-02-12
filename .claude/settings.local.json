@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec:*)",
+      "Bash(where:*)",
+      "Bash(echo:*)",
+      "Bash(dir:*)",
+      "Bash(powershell:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(timeout:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(cat:*)",
+      "Bash(python:*)",
+      "Bash(cmd.exe /c \"Start-Claude.cmd Test Project\")",
+      "Bash(chmod:*)",
+      "Bash(C:UsersAdministratorsourcereposclaude_toolsStart-Claude.cmd \"数据集\")",
+      "Bash(cmd.exe:*)",
+      "Bash(done)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(pwsh:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
