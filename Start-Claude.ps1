@@ -69,16 +69,25 @@ if ($existingData) {
     $existingData.timestamp = Get-Date -Format 'o'
     $existingData.sessionId = $sessionId
 
-    # Save to the same file (overwrite)
-    $existingData | ConvertTo-Json | Out-File -FilePath $existingSessionFile -Encoding utf8
+    # Get new filename and old filename
+    $newFilename = "$sessionId.json"
+    $oldFilename = Split-Path $existingSessionFile -Leaf
+
+    # Save to new file with new session ID
+    $newSessionFile = Join-Path $sessionsDir $newFilename
+    $existingData | ConvertTo-Json | Out-File -FilePath $newSessionFile -Encoding utf8
+
+    # Delete old file
+    Remove-Item $existingSessionFile -Force
 
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host "Claude Session Tracker" -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host "Project: $ProjectName" -ForegroundColor White
     Write-Host "Directory: $workingDir" -ForegroundColor Gray
-    Write-Host "Session ID: $sessionId" -ForegroundColor Gray
-    Write-Host "✓ Updated existing session" -ForegroundColor Yellow
+    Write-Host "Old Session: $oldSessionId" -ForegroundColor Gray
+    Write-Host "New Session: $sessionId" -ForegroundColor Gray
+    Write-Host "✓ Session updated (renamed: $oldFilename -> $newFilename)" -ForegroundColor Yellow
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host ""
 } else {
