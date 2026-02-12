@@ -27,6 +27,27 @@ claude
 
 只有通过 `Start-Claude.ps1` 启动的会话才会被自动记录到本地数据库中。
 
+### 📌 启动前必读
+
+**启动前必须先 cd 到项目目录！**
+
+```powershell
+# ❌ 错误：在工具目录启动
+cd C:\repos\claude_tools
+.\Start-Claude.ps1 "博客系统"    # 会记录工具目录，不是项目目录！
+
+# ✅ 正确：先 cd 到项目目录
+cd C:\repos\my-blog
+.\Start-Claude.ps1 "博客系统"    # 正确记录项目目录
+
+# ✅ 或者根据已记录的项目路径进行 cd
+.\monitor.ps1 list    # 查看项目路径
+cd C:\repos\my-blog     # 切换到项目目录
+.\Start-Claude.ps1 "博客系统"    # 启动并记录
+```
+
+**原因**：`Start-Claude.ps1` 会记录**当前目录**作为项目路径，所以必须先 cd 到实际的项目目录。
+
 ## 安装
 
 ```powershell
