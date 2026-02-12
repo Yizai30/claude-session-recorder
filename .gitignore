@@ -3,12 +3,16 @@
 
 # Temporary files
 *.tmp
-*.log
+*..log
 *.bak
 *~
 
 # Session files
 session-*.json
+
+# Tool specific
+.claude/
+openspec/
 
 # OS files
 .DS_Store

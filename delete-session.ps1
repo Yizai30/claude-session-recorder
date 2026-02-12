@@ -4,7 +4,7 @@
 Delete a specific Claude session record
 
 .DESCRIPTION
-This script allows you to delete a specific session from the session history.
+This script allows you to delete a specific session from session history.
 
 .PARAMETER SessionId
 The session ID to delete (e.g., "session-20260205-163000-a1b2c3d4")
@@ -28,14 +28,15 @@ Delete all sessions (use with caution!)
 .\delete-session.ps1 -All
 #>
 
+[CmdletBinding()]
 param(
-    [Parameter(ParameterSetName='ById', Mandatory=$false)]
+    [Parameter(Mandatory=$false)]
     [string]$SessionId,
 
-    [Parameter(ParameterSetName='ByProject', Mandatory=$false)]
+    [Parameter(Mandatory=$false)]
     [string]$ProjectName,
 
-    [Parameter(ParameterSetName='All', Mandatory=$false)]
+    [Parameter(Mandatory=$false)]
     [switch]$All
 )
 
@@ -72,8 +73,14 @@ function Remove-SessionFile {
     }
 }
 
+# Determine which parameter was used
+$paramCount = 0
+if ($SessionId) { $paramCount++ }
+if ($ProjectName) { $paramCount++ }
+if ($All) { $paramCount++ }
+
 # Delete by Session ID
-if ($SessionId) {
+if ($SessionId -and $paramCount -eq 1) {
     $session = $sessions | Where-Object { $_.BaseName -eq $SessionId }
 
     if (-not $session) {
@@ -90,7 +97,7 @@ if ($SessionId) {
 }
 
 # Delete by Project Name
-if ($ProjectName) {
+if ($ProjectName -and $paramCount -eq 1) {
     $matchingSessions = @()
 
     foreach ($s in $sessions) {
@@ -127,7 +134,7 @@ if ($ProjectName) {
 }
 
 # Delete all sessions
-if ($All) {
+if ($All -and $paramCount -eq 1) {
     Write-Host "WARNING: This will delete ALL sessions!" -ForegroundColor Red
     Write-Host "Total sessions: $($sessions.Count)" -ForegroundColor Yellow
     $confirm = Read-Host "Are you sure? (yes/no)"
@@ -148,6 +155,17 @@ if ($All) {
 
     Write-Host "Deleted all $deletedCount sessions" -ForegroundColor Green
     exit 0
+}
+
+# If multiple parameters provided
+if ($paramCount -gt 1) {
+    Write-Host "Error: Can only use one parameter at a time." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Use one of:" -ForegroundColor Yellow
+    Write-Host "  -SessionId '<session-id>'" -ForegroundColor White
+    Write-Host "  -ProjectName '<project-name>'" -ForegroundColor White
+    Write-Host "  -All" -ForegroundColor White
+    exit 1
 }
 
 # If no parameters provided, show list and prompt
