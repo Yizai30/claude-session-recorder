@@ -19,7 +19,8 @@
       "Bash(done)",
       "Bash(ls:*)",
       "Bash(xargs:*)",
-      "Bash(pwsh:*)"
+      "Bash(pwsh:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

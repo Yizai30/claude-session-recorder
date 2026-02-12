@@ -6,7 +6,7 @@ Claude Session Monitor - Auto-track all Claude CLI sessions
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet('start', 'stop', 'list', 'restore', 'config', 'help')]
+    [ValidateSet('start', 'stop', 'list', 'restore', 'open', 'config', 'help')]
     [string]$Action = 'help',
 
     [Parameter(ValueFromRemainingArguments=$true)]
@@ -283,6 +283,150 @@ function Show-Config {
     Write-Host "  .\monitor.ps1 config -gitbash 'C:\Program Files\Git\git-bash.exe'" -ForegroundColor White
 }
 
+function Open-Session {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromRemainingArguments=$true)]
+        [string[]]$RemainingArgs
+    )
+
+    Init-SessionsDir
+    $sessions = Get-ChildItem $SessionsDir -Filter 'session-*.json' | Sort-Object LastWriteTime -Descending
+
+    if ($sessions.Count -eq 0) {
+        Write-Host "No sessions found. Start a session with: .\Start-Claude.ps1 \"ProjectName\"" -ForegroundColor Yellow
+        return
+    }
+
+    $sessionId = $null
+    $projectName = $null
+    $terminalChoice = "1"
+
+    # Parse arguments
+    for ($i = 0; $i -lt $RemainingArgs.Count; $i++) {
+        $arg = $RemainingArgs[$i]
+        if ($arg -eq '-session' -or $arg -eq '-s') {
+            if ($i + 1 -lt $RemainingArgs.Count) {
+                $sessionId = $RemainingArgs[$i + 1]
+                $i++
+            }
+        }
+        elseif ($arg -eq '-project' -or $arg -eq '-p') {
+            if ($i + 1 -lt $RemainingArgs.Count) {
+                $projectName = $RemainingArgs[$i + 1]
+                $i++
+            }
+        }
+        elseif ($arg -eq '-terminal' -or $arg -eq '-t') {
+            if ($i + 1 -lt $RemainingArgs.Count) {
+                $terminalChoice = $RemainingArgs[$i + 1]
+                $i++
+            }
+        }
+    }
+
+    $targetSession = $null
+
+    # Find by session ID
+    if ($sessionId) {
+        foreach ($s in $sessions) {
+            $data = Get-Content $s.FullName | ConvertFrom-Json
+            if ($data.sessionId -eq $sessionId -or $s.Name -eq "$sessionId.json") {
+                $targetSession = $data
+                break
+            }
+        }
+        if (-not $targetSession) {
+            Write-Host "Session not found: $sessionId" -ForegroundColor Red
+            return
+        }
+    }
+    # Find by project name
+    elseif ($projectName) {
+        foreach ($s in $sessions) {
+            $data = Get-Content $s.FullName | ConvertFrom-Json
+            if ($data.projectName -and $data.projectName -like "*$projectName*") {
+                $targetSession = $data
+                break
+            }
+        }
+        if (-not $targetSession) {
+            Write-Host "Project not found: $projectName" -ForegroundColor Red
+            Write-Host "Use '.\monitor.ps1 list' to see available sessions" -ForegroundColor Yellow
+            return
+        }
+    }
+    # No filter specified, show selection
+    else {
+        Write-Host "`nAvailable sessions:" -ForegroundColor Cyan
+        $idx = 1
+        $sessionList = @()
+        foreach ($s in $sessions | Select-Object -First 10) {
+            $data = Get-Content $s.FullName | ConvertFrom-Json
+            $displayDir = Update-DirectoryPath -path $data.workingDirectory
+            $projName = if ($data.projectName) { $data.projectName } else { "[Unnamed]" }
+
+            Write-Host "  [$idx] $projName" -ForegroundColor White
+            Write-Host "      Directory: $displayDir" -ForegroundColor Gray
+            Write-Host "      Session: $($data.sessionId)" -ForegroundColor Gray
+            Write-Host ""
+
+            $sessionList += $data
+            $idx++
+        }
+
+        Write-Host "Select session [1-$($sessionList.Count)] (or 0 to cancel): " -NoNewline
+        $selection = Read-Host
+        $selectionNum = [int]$selection
+
+        if ($selectionNum -eq 0 -or $selectionNum -lt 1 -or $selectionNum -gt $sessionList.Count) {
+            Write-Host "Cancelled." -ForegroundColor Yellow
+            return
+        }
+
+        $targetSession = $sessionList[$selectionNum - 1]
+    }
+
+    # Get terminal choice and config
+    $config = Get-Config
+    $gitBashPath = $config.gitBashPath
+
+    # Update directory path
+    $targetDir = Update-DirectoryPath -path $targetSession.workingDirectory
+
+    # Start the session
+    switch ($terminalChoice) {
+        "1" {
+            Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "cd '$targetDir'; claude"
+            Write-Host "Opened in PowerShell: $targetDir" -ForegroundColor Green
+        }
+        "2" {
+            if (Test-Path $gitBashPath) {
+                Start-Process $gitBashPath -ArgumentList "--cd=`"$targetDir`"", "-l", "-i", "-c", "exec claude"
+                Write-Host "Opened in Git Bash: $targetDir" -ForegroundColor Green
+            }
+            else {
+                Write-Host "Git Bash not found. Falling back to PowerShell." -ForegroundColor Yellow
+                Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "cd '$targetDir'; claude"
+            }
+        }
+        "3" {
+            Start-Process cmd.exe -ArgumentList "/K", "cd /d `"$targetDir`" && claude"
+            Write-Host "Opened in CMD: $targetDir" -ForegroundColor Green
+        }
+        default {
+            Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "cd '$targetDir'; claude"
+            Write-Host "Opened in PowerShell: $targetDir" -ForegroundColor Green
+        }
+    }
+
+    Write-Host "`nSession Info:" -ForegroundColor Cyan
+    if ($targetSession.projectName) {
+        Write-Host "  Project: $($targetSession.projectName)" -ForegroundColor White
+    }
+    Write-Host "  Directory: $targetDir" -ForegroundColor White
+}
+
 function Set-ConfigFromArgs {
     [CmdletBinding()]
     param(
@@ -327,6 +471,14 @@ switch ($Action) {
     'stop' { Stop-Monitor }
     'list' { Show-Sessions }
     'restore' { Restore-Sessions }
+    'open' { Open-Session @RemainingArgs }
     'config' { Set-ConfigFromArgs @RemainingArgs }
-    'help' { Get-Help $MyInvocation.MyCommand.Path -Full }
+    'help' {
+        Get-Help $MyInvocation.MyCommand.Path -Full
+        Write-Host "`nQuick Examples:" -ForegroundColor Cyan
+        Write-Host "  .\monitor.ps1 list" -ForegroundColor White
+        Write-Host "  .\monitor.ps1 open -project \"MyProject\" -terminal 2" -ForegroundColor White
+        Write-Host "  .\monitor.ps1 open -session session-20250101-120000-abcd1234" -ForegroundColor White
+        Write-Host "  .\monitor.ps1 config -gitbash \"C:\Program Files\Git\git-bash.exe\"" -ForegroundColor White
+    }
 }
