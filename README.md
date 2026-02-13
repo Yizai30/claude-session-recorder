@@ -66,19 +66,19 @@ cd claude-session-recorder
 # 在 PowerShell 中启动（默认）
 .\Start-Claude.ps1 "项目名称"
 
-# 在 Git Bash 中启动
-.\Start-Claude.ps1 "项目名称" -UseGitBash
+# 在 Git Bash 中启动（推荐）
+./Start-Claude.sh "项目名称"
 
 # 示例
-.\Start-Claude.ps1 "博客系统"
-.\Start-Claude.ps1 "AI助手" -UseGitBash
+./Start-Claude.sh "博客系统"
+./Start-Claude.sh "AI助手"
 ```
 
 执行后：
 - ✅ 自动在项目目录启动 Claude
 - ✅ 记录项目路径和名称
 - ✅ 生成唯一会话 ID
-- ✅ 支持选择终端类型（PowerShell 或 Git Bash）
+- ✅ 在 Git Bash 中正常使用
 
 ### 2️⃣ 查看已记录的项目
 
@@ -160,13 +160,16 @@ Recorded Sessions:
 .\Start-Claude.ps1 "项目名称" -UseGitBash
 ```
 
-**参数**：
+**PowerShell 用户参数**（`Start-Claude.ps1`）：
 - `ProjectName`：项目名称（必需）
   - 用于标识和搜索项目
   - 建议使用简洁的中文名称
-- `-UseGitBash`：在 Git Bash 中启动（可选）
+- `-UseGitBash`：在 Git Bash 中启动（仅限 PowerShell，Git Bash 用户请直接用 .sh 文件）
   - 使用 Git Bash 终端代替 PowerShell
-  - 需要先配置 Git Bash 路径
+
+**Git Bash 用户使用**（`Start-Claude.sh`）：
+- 直接执行 `./Start-Claude.sh "项目名称"`
+- 自动调用 PowerShell 脚本完成会话记录和启动
 
 ### open 命令参数
 
@@ -284,12 +287,23 @@ A: PowerShell（默认）、Git Bash、CMD
 
 ### Q: 如何在 Git Bash 中启动 Claude？
 
-A: 使用 `-UseGitBash` 参数
+A: **推荐方式**：使用 `Start-Claude.sh` 脚本
 
-```powershell
+```bash
 # 在 Git Bash 中启动
-cd C:\repos\my-project
-.\Start-Claude.ps1 "我的项目" -UseGitBash
+cd /c/repos/my-project
+./Start-Claude.sh "我的项目"
+
+# 示例
+./Start-Claude.sh "博客系统"
+./Start-Claude.sh "AI助手"
+```
+
+**备用方式**（不推荐）：在 Git Bash 中调用 PowerShell 脚本
+
+```bash
+# 不推荐，但也可以用
+./Start-Claude.ps1 "我的项目" -UseGitBash
 ```
 
 ### Q: 项目名称可以重复吗？
@@ -298,11 +312,12 @@ A: 可以。`open` 命令会匹配第一个包含关键词的项目。
 
 ## 文件说明
 
-| 文件 | 说明 |
-|------|------|
-| `monitor.ps1` | 主管理脚本 |
-| `Start-Claude.ps1` | 启动并记录会话 |
-| `delete-session.ps1` | 删除会话 |
+| 文件 | 说明 | 适用终端 |
+|------|------|----------|
+| `monitor.ps1` | 主管理脚本 | PowerShell、Git Bash |
+| `Start-Claude.ps1` | 启动并记录会话 | PowerShell |
+| `Start-Claude.sh` | Git Bash 启动脚本 | Git Bash（推荐） |
+| `delete-session.ps1` | 删除会话 | PowerShell、Git Bash |
 
 ## License
 
