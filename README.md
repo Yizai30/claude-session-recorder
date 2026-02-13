@@ -19,7 +19,7 @@ Windows 上的 Claude CLI 会话管理工具 - 自动记录项目路径，一键
 
 ```powershell
 # 运行自动安装脚本
-.\install.ps1
+install.ps1
 
 # 脚本会自动检测终端类型并添加到 PATH
 # PowerShell 用户：添加到用户 PATH 环境变量
@@ -61,7 +61,7 @@ Start-Claude.sh "AI助手"
 
 ```powershell
 # 列出所有项目
-.\monitor.ps1 list
+monitor.ps1 list
 ```
 
 输出示例：
@@ -84,16 +84,16 @@ Recorded Sessions:
 
 ```powershell
 # 方式一：按项目名称打开
-.\monitor.ps1 open -project "博客"
+monitor.ps1 open -project "博客"
 
 # 方式二：按会话 ID 打开
-.\monitor.ps1 open -session session-20250212-120000-abcd1234
+monitor.ps1 open -session session-20250212-120000-abcd1234
 
 # 方式三：交互式选择
-.\monitor.ps1 open
+monitor.ps1 open
 
 # 指定终端类型（1=PowerShell, 2=Git Bash, 3=CMD）
-.\monitor.ps1 open -project "博客" -terminal 2
+monitor.ps1 open -project "博客" -terminal 2
 ```
 
 ## 命令详解
@@ -102,22 +102,22 @@ Recorded Sessions:
 
 ```powershell
 # 查看所有项目
-.\monitor.ps1 list
+monitor.ps1 list
 
 # 打开指定项目
-.\monitor.ps1 open -project "项目名"
-.\monitor.ps1 open -session "会话ID"
-.\monitor.ps1 open                    # 交互式选择
+monitor.ps1 open -project "项目名"
+monitor.ps1 open -session "会话ID"
+monitor.ps1 open                    # 交互式选择
 
 # 批量恢复所有项目
-.\monitor.ps1 restore
+monitor.ps1 restore
 
 # 配置管理
-.\monitor.ps1 config                          # 查看配置
-.\monitor.ps1 config -gitbash "路径"           # 设置 Git Bash 路径
+monitor.ps1 config                          # 查看配置
+monitor.ps1 config -gitbash "路径"           # 设置 Git Bash 路径
 
 # 帮助
-.\monitor.ps1 help
+monitor.ps1 help
 ```
 
 **PowerShell 用户参数**（`Start-Claude.ps1`）：
@@ -185,7 +185,7 @@ Recorded Sessions:
 
 ### Q: 如何安装工具到 PATH？
 
-A: 运行自动安装脚本 `.\install.ps1`，它会自动检测终端类型并添加到 PATH。
+A: 运行自动安装脚本 `install.ps1`，它会自动检测终端类型并添加到 PATH。
 
 ### Q: 为什么我的会话没有被记录？
 
@@ -206,7 +206,7 @@ A: `%LOCALAPPDATA%\claude-tools\sessions\`
 
 ### Q: 如何删除旧会话？
 
-A: 运行 `.\delete-session.ps1` 选择要删除的会话
+A: 运行 `delete-session.ps1` 选择要删除的会话
 
 ### Q: 如何在 Git Bash 中启动 Claude？
 
