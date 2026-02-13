@@ -5,6 +5,24 @@
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Find PowerShell executable
+POWERSHELL_EXE=""
+if command -v pwsh &> /dev/null; then
+    POWERSHELL_EXE="pwsh"
+elif command -v powershell &> /dev/null; then
+    POWERSHELL_EXE="powershell"
+else
+    # Try default paths
+    if [ -f "/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe" ]; then
+        POWERSHELL_EXE="/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+    elif [ -f "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe" ]; then
+        POWERSHELL_EXE="C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+    else
+        echo "错误: 找不到 PowerShell"
+        exit 1
+    fi
+fi
+
 # Check if project name is provided
 if [ -z "$1" ]; then
     echo "错误: 请提供项目名称"
@@ -17,28 +35,9 @@ if [ -z "$1" ]; then
 fi
 
 PROJECT_NAME="$1"
-USE_GIT_BASH=false
 
-# Parse arguments
-shift
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -UseGitBash)
-            USE_GIT_BASH=true
-            ;;
-        *)
-            # Pass remaining arguments to Claude
-            break
-            ;;
-    esac
-    shift
-done
+# Call PowerShell script with project name
+# The -File parameter expects a Windows path
+"$POWERSHELL_EXE" -File "$SCRIPT_DIR/Start-Claude.ps1" -ProjectName "$PROJECT_NAME"
 
-# Call PowerShell script
-if [ "$USE_GIT_BASH" = true ]; then
-    # Already in Git Bash, just run pwsh directly
-    pwsh -File "$SCRIPT_DIR/Start-Claude.ps1" -ProjectName "$PROJECT_NAME" -UseGitBash
-else
-    # In Git Bash but want PowerShell, still use pwsh
-    pwsh -File "$SCRIPT_DIR/Start-Claude.ps1" -ProjectName "$PROJECT_NAME"
-fi
+echo "✓ 已启动项目: $PROJECT_NAME"
