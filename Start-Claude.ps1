@@ -6,20 +6,30 @@ Start Claude CLI with session tracking
 .PARAMETER ProjectName
 Name/label for this project (e.g., "Web App", "API Service")
 
+.PARAMETER UseGitBash
+Start Claude in Git Bash instead of PowerShell
+
 .DESCRIPTION
 This script:
 1. Records the current directory with a project name
-2. Starts Claude CLI
+2. Starts Claude CLI in the specified terminal
 3. Makes it easy to restore later with monitor.ps1
 
 .EXAMPLE
 cd C:\my-project
 .\Start-Claude.ps1 "Web App"
+
+.EXAMPLE
+cd C:\my-project
+.\Start-Claude.ps1 "Web App" -UseGitBash
 #>
 
 param(
     [Parameter(Mandatory=$true, Position=0)]
     [string]$ProjectName,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$UseGitBash,
 
     [Parameter(ValueFromRemainingArguments=$true)]
     [string[]]$RemainingArgs
@@ -28,11 +38,32 @@ param(
 # Configuration
 $localAppData = [Environment]::GetFolderPath('LocalApplicationData')
 $sessionsDir = "$localAppData\claude-tools\sessions"
+$configFile = "$localAppData\claude-tools\config.json"
 
 # Initialize sessions directory
 if (-not (Test-Path $sessionsDir)) {
     New-Item -ItemType Directory -Path $sessionsDir -Force | Out-Null
 }
+
+# Load config to get Git Bash path
+function Get-Config {
+    if (Test-Path $configFile) {
+        try {
+            return Get-Content $configFile | ConvertFrom-Json
+        }
+        catch {
+            # Invalid config, return defaults
+        }
+    }
+
+    # Default config
+    return @{
+        gitBashPath = "C:\Program Files\Git\git-bash.exe"
+        defaultTerminal = "powershell"
+    }
+}
+
+$config = Get-Config
 
 # Get current directory
 $workingDir = Get-Location
@@ -115,5 +146,28 @@ if ($existingData) {
     Write-Host ""
 }
 
-# Start Claude with remaining arguments
+# Start Claude in appropriate terminal
+$terminalUsed = ""
+
+if ($UseGitBash) {
+    # Check if Git Bash exists
+    if (-not (Test-Path $config.gitBashPath)) {
+        Write-Host "Warning: Git Bash not found at: $($config.gitBashPath)" -ForegroundColor Yellow
+        Write-Host "Falling back to PowerShell..." -ForegroundColor Yellow
+        Write-Host ""
+        Start-Sleep -Seconds 2
+    }
+    else {
+        # Start in Git Bash
+        $terminalUsed = "Git Bash"
+        Start-Process $config.gitBashPath -ArgumentList "--cd=`"$workingDir`"", "-l", "-i", "-c", "exec claude"
+        Write-Host "Started in Git Bash" -ForegroundColor Green
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ""
+        exit 0
+    }
+}
+
+# Default: Start in PowerShell
+$terminalUsed = "PowerShell"
 & claude @RemainingArgs
