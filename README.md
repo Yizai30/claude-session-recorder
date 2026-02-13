@@ -50,28 +50,79 @@ cd C:\repos\my-blog     # 切换到项目目录
 
 ## 安装
 
+### 方法一：自动安装脚本（推荐）
+
 ```powershell
-# 克隆仓库
+# 运行自动安装脚本
+.\install.ps1
+
+# 脚本会自动检测终端类型并添加到 PATH
+# PowerShell 用户：添加到用户 PATH 环境变量
+# Git Bash 用户：添加到 ~/.bashrc 文件
+```
+
+⚠️ **重要**：必须将工具目录添加到 PATH，才能在任何目录下使用命令！
+
+### 方法二：手动添加到 PATH
+
+```powershell
+# 1. 克隆仓库
 git clone https://gitee.com/Yizai30/claude-session-recorder.git
 cd claude-session-recorder
 
-# （可选）将当前目录添加到 PATH 环境变量
+# 2. PowerShell 用户：添加到用户 PATH
+$env:Path += ";C:\repos\claude-session-recorder"
+
+# 3. Git Bash 用户（添加到 ~/.bashrc）
+echo 'export PATH="$PATH:/c/repos/claude-session-recorder"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+```powershell
+# 不添加 PATH，使用完整路径
+C:\repos\claude-session-recorder\Start-Claude.ps1 "项目名称"
+
+# Git Bash 中
+/c/repos/claude-session-recorder/Start-Claude.sh "项目名称"
 ```
 
 ## 快速开始
 
+### ⚠️ 安装前必读
+
+**必须先将工具目录添加到 PATH 环境变量！**
+
+- **PowerShell 用户**：添加到系统 PATH
+- **Git Bash 用户**：添加到 `~/.bashrc`
+
+添加到 PATH 后，可以在任何目录下直接使用命令（不需要 `./` 前缀）。
+
 ### 1️⃣ 启动新会话并记录
 
+**已添加到 PATH 后**（推荐）：
 ```powershell
+# 在任意目录下，直接使用命令
+cd /c/repos/my-project
+Start-Claude.ps1 "项目名称"
+
+# Git Bash 中使用
+Start-Claude.sh "项目名称"
+
+# 示例
+Start-Claude.sh "博客系统"
+Start-Claude.sh "AI助手"
+```
+
+**未添加到 PATH**（需要在工具目录执行）：
+```powershell
+# 必须先 cd 到工具目录
+cd C:\repos\claude-session-recorder
+
 # 在 PowerShell 中启动（默认）
 .\Start-Claude.ps1 "项目名称"
 
-# 在 Git Bash 中启动（推荐）
-./Start-Claude.sh "项目名称"
-
-# 示例
-./Start-Claude.sh "博客系统"
-./Start-Claude.sh "AI助手"
+# 在 Git Bash 中启动
+.\Start-Claude.sh "项目名称"
 ```
 
 执行后：
@@ -316,8 +367,54 @@ A: 可以。`open` 命令会匹配第一个包含关键词的项目。
 |------|------|----------|
 | `monitor.ps1` | 主管理脚本 | PowerShell、Git Bash |
 | `Start-Claude.ps1` | 启动并记录会话 | PowerShell |
-| `Start-Claude.sh` | Git Bash 启动脚本 | Git Bash（推荐） |
+| `Start-Claude.sh` | Git Bash 启动脚本 | Git Bash |
+| `install.ps1` | 自动安装到 PATH | PowerShell、Git Bash |
 | `delete-session.ps1` | 删除会话 | PowerShell、Git Bash |
+
+## 常见问题
+
+### Q: 如何安装工具到 PATH？
+
+A: 运行自动安装脚本 `.\install.ps1`，它会自动检测终端类型并添加到 PATH。
+
+### Q: 为什么我的会话没有被记录？
+
+**A**: 必须通过 `Start-Claude.ps1`（PowerShell）或 `Start-Claude.sh`（Git Bash）启动才能被记录。
+
+```powershell
+# ✅ 会被记录
+Start-Claude.ps1 "我的项目"     # PowerShell
+Start-Claude.sh "我的项目"      # Git Bash
+
+# ❌ 不会被记录
+claude
+```
+
+### Q: 会话保存在哪里？
+
+A: `%LOCALAPPDATA%\claude-tools\sessions\`
+
+### Q: 如何删除旧会话？
+
+A: 运行 `.\delete-session.ps1` 选择要删除的会话
+
+### Q: 如何在 Git Bash 中启动 Claude？
+
+A: **推荐方式**：直接使用 `Start-Claude.sh`
+
+```bash
+Start-Claude.sh "我的项目"
+```
+
+**备用方式**（不推荐）：调用 PowerShell 脚本
+
+```bash
+Start-Claude.ps1 "我的项目" -UseGitBash
+```
+
+### Q: 项目名称可以重复吗？
+
+A: 可以。`open` 命令会匹配第一个包含关键词的项目。
 
 ## License
 
