@@ -128,7 +128,7 @@ monitor.ps1 help
   - 使用 Git Bash 终端代替 PowerShell
 
 **Git Bash 用户使用**（`Start-Claude.sh`）：
-- 直接执行 `./Start-Claude.sh "项目名称"`
+- 直接执行 `Start-Claude.sh "项目名称"`
 - 自动调用 PowerShell 脚本完成会话记录和启动
 
 ### open 命令参数
